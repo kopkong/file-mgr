@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wifi File Uploading</title>
+    <meta name="description" content="File-Uploading"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,minimum-scale=1.0, maximum-scale=1.0,user-scalable=no"/>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+<section class="wrapper">
+    <header>Wifi 文件管理系统 <em>@oneofzero</em> </header>
+    <section class="upload">这里应该可以上传文件</section>
+    <ul id="dirList">
+        <li v-on:click="openDirectory(parentDir)">
+            <i class="fa fa-folder-o" aria-hidden="true"></i>
+            {{ currentDir }}
+        </li>
+        <li v-for="file in fileList" v-on:click="openDirectory(file.name)">
+            <i class="fa" v-bind:class="file.iconClassObject" aria-hidden="true"></i>
+            <span v-if="file.type === 'dir'">{{file.name}}</span>
+            <span v-else>{{ file.name }}</span>
+        </li>
+    </ul>
+</section>
+<script src="zepto.min.js"></script>
+<script src="https://unpkg.com/vue"></script>
+<script>
+    var $dirList = new Vue({
+        el: '#dirList',
+        data: {
+            parentDir: '/',
+            currentDir: '/',
+            fileList: []
+        },
+        methods:{
+            openDirectory: function(dir){
+                if(dir){
+                    loadDirData(dir);
+                }
+            }
+        }
+    });
+
+    function loadDirData(dir) {
+        $.ajax({
+            url: 'http://www.oneofzero.com/getfilelist.lua?' + dir,
+            success: function (res) {
+                var jsonObj = JSON.parse(res);
+
+                $dirList.parentDir = $dirList.currentDir;
+                $dirList.currentDir = dir;
+
+                if(jsonObj.filelist && jsonObj.filelist.length) {
+                    jsonObj.filelist.forEach(function(item) {
+                       item.iconClassObject =  {
+                           'fa-folder-o' : item.type === 'dir',
+                           'fa-file-image-o'  : item.type === 'file'
+                       };
+                    });
+                }
+
+                console.log(jsonObj);
+
+                $dirList.fileList = jsonObj.filelist;
+
+
+            },
+            error: function () {
+
+            }
+        })
+    }
+
+    loadDirData('/');
+</script>
+</body>
+</html>
