@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0,minimum-scale=1.0, maximum-scale=1.0,user-scalable=no"/>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-
 </head>
 <body>
 <section class="wrapper">
@@ -18,16 +17,23 @@
             <i class="fa fa-folder-o" aria-hidden="true"></i>
             {{ currentDir }}
         </li>
-        <li v-for="file in fileList" v-on:click="openDirectory(file.name)">
-            <i class="fa" v-bind:class="file.iconClassObject" aria-hidden="true"></i>
-            <span v-if="file.type === 'dir'">{{file.name}}</span>
-            <span v-else>{{ file.name }}</span>
+        <li v-for="file in fileList" class="child">
+            <div v-if="file.type === 'dir'" v-on:click="openDirectory(file.name)">
+                <i class="fa fa-folder-o" aria-hidden="true"></i>
+                {{file.name}}
+            </div>
+            <div v-else>
+                <i class="fa fa-file-image-o" aria-hidden="true"></i>
+                {{file.name}}
+            </div>
         </li>
     </ul>
 </section>
 <script src="zepto.min.js"></script>
-<script src="https://unpkg.com/vue"></script>
+<script src="vue.js"></script>
 <script>
+    var dirDict = {};
+
     var $dirList = new Vue({
         el: '#dirList',
         data: {
@@ -50,8 +56,15 @@
             success: function (res) {
                 var jsonObj = JSON.parse(res);
 
-                $dirList.parentDir = $dirList.currentDir;
                 $dirList.currentDir = dir;
+
+                if(dirDict[dir]){
+                    $dirList.parentDir = dirDict[dir].parent;
+                } else{
+                    dirDict[dir] = {
+                        parent : $dirList.parentDir
+                    }
+                }
 
                 if(jsonObj.filelist && jsonObj.filelist.length) {
                     jsonObj.filelist.forEach(function(item) {
